@@ -1,0 +1,18 @@
+/* Mobile hotfix: names and microphones stay attached to each player card. */
+#seats .seat{overflow:visible!important}
+#seats .seat-inner{overflow:visible!important;justify-content:flex-end!important}
+#seats .seat-name{position:relative!important;z-index:20!important;display:flex!important;align-items:center!important;justify-content:center!important;gap:4px!important;overflow:visible!important;white-space:normal!important;max-width:124px!important;min-width:78px!important;min-height:30px!important;padding:4px 5px!important;line-height:1.15!important}
+#seats .seat-name-text{display:block!important;flex:1 1 auto!important;min-width:0!important;max-width:none!important;overflow:visible!important;text-overflow:clip!important;white-space:normal!important;word-break:break-word!important;text-align:center!important}
+#seats .player-mic-btn{display:inline-flex!important;visibility:visible!important;position:relative!important;z-index:30!important;flex:0 0 27px!important;width:27px!important;height:27px!important;min-width:27px!important;min-height:27px!important;align-items:center!important;justify-content:center!important;padding:0!important;border:1px solid rgba(116,213,208,.8)!important;border-radius:7px!important;background:#10272c!important;color:#fff!important;font-size:13px!important;line-height:1!important;pointer-events:auto!important;touch-action:manipulation!important}
+#seats .player-mic-btn.muted{background:#551a2d!important;border-color:#e06b87!important}
+#seats .player-mic-btn:disabled{opacity:.58!important;filter:none!important}
+#screen-game #playerMicLayer{display:none!important}
+@media(max-width:700px){
+  .table-zone{overflow:visible!important}
+  .seats-container{inset:0!important;overflow:visible!important}
+  .seat{width:112px!important;height:116px!important}
+  .seat-name{font-size:11px!important}
+}
+@media(max-width:380px){.seat{width:104px!important;height:112px!important}.seat-name{font-size:10px!important;min-width:72px!important}.player-mic-btn{width:25px!important;height:25px!important;min-width:25px!important;font-size:12px!important}}
+/* Clear feedback for audio connection states. */
+#callStatus{display:block!important;min-height:18px!important;color:#9ddbd7!important}

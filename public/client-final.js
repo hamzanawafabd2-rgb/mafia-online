@@ -249,7 +249,9 @@ window.onload = function() {
       { urls: "turn:openrelay.metered.ca:443?transport=tcp", username: "openrelayproject", credential: "openrelayproject" }
     ],
     bundlePolicy: "max-bundle",
-    rtcpMuxPolicy: "require"
+    rtcpMuxPolicy: "require",
+    iceCandidatePoolSize: 10,
+    sdpSemantics: "unified-plan"
   };
 
   function callStatus(text) { if ($("callStatus")) $("callStatus").textContent = text; }
@@ -295,7 +297,14 @@ window.onload = function() {
     };
     pc.onconnectionstatechange = function() {
       if (pc.connectionState === "connected") callStatus("المكالمة فعالة • الصوت متصل");
-      if (["failed","closed"].indexOf(pc.connectionState) >= 0) closePeer(peerId);
+      if (pc.connectionState === "connecting") callStatus("جاري عبور جدار الحماية...");
+      if (pc.connectionState === "failed") { callStatus("تعذر ربط الصوت — أعد الضغط على المكالمة"); closePeer(peerId); }
+      if (pc.connectionState === "closed") closePeer(peerId);
+    };
+    pc.oniceconnectionstatechange = function() {
+      if (pc.iceConnectionState === "checking") callStatus("جاري البحث عن مسار صوت آمن...");
+      if (pc.iceConnectionState === "connected" || pc.iceConnectionState === "completed") callStatus("المكالمة فعالة • الصوت متصل");
+      if (pc.iceConnectionState === "failed") callStatus("فشل مسار الصوت — حاول مغادرة المكالمة والانضمام مجدداً");
     };
     if (shouldOffer) {
       pc.createOffer({ offerToReceiveAudio: true }).then(function(o) {
@@ -333,6 +342,11 @@ window.onload = function() {
       $("btnCall").textContent = "📞 المكالمة مفتوحة";
       callStatus("جاري توصيل الصوت...");
       socket.emit("callJoin");
+      // بعض متصفحات الهاتف لا تبدأ الصوت البعيد إلا بعد نقرة المستخدم نفسها.
+      document.addEventListener("click", function resumeCallAudio() {
+        Object.keys(callPeers).forEach(function(id){ var a = $("audio-" + id); if (a) a.play().catch(function(){}); });
+        document.removeEventListener("click", resumeCallAudio);
+      }, { once: true });
       updateCallCount();
       updateMicButtonsForAll();
     } catch (e) {
@@ -577,19 +591,60 @@ window.onload = function() {
     var players = room.players;
     var total = players.length;
     if (total === 0) return;
+    var lounge = $("loungeTables");
+    if (lounge) {
+      el.setAttribute("data-player-count", total);
+      lounge.innerHTML = "";
+      lounge.classList.add("active");
+      var tableCount = Math.ceil(total / 5);
+      for (var group = 0; group < tableCount; group++) {
+        var unit = document.createElement("section");
+        unit.className = "table-unit";
+        unit.innerHTML = '<div class="table-unit-head"><span>مجلس ' + (group + 1) + '</span><b>' + Math.min(5, total - group * 5) + ' / 5 لاعبين</b></div><div class="mini-table"><div class="mini-table-top"><span>🎭</span></div><div class="mini-seats"></div></div>';
+        var miniSeats = unit.querySelector(".mini-seats");
+        var groupPlayers = players.slice(group * 5, group * 5 + 5);
+        // هامش داخلي آمن: لا يلامس الكرسي أو الاسم حافة الشاشة.
+        var positions = [[50,8],[84,34],[72,80],[28,80],[16,34]];
+        groupPlayers.forEach(function(p, localIndex) {
+          var seat = document.createElement("div");
+          seat.className = "seat lounge-seat";
+          seat.style.left = positions[localIndex][0] + "%";
+          seat.style.top = positions[localIndex][1] + "%";
+          if (!p.alive) seat.classList.add("dead");
+          if (p.isMafiaMate && p.id !== myId) seat.classList.add("mafia");
+          if (p.id === myId) seat.classList.add("is-you");
+          var info = p.role ? getRoleInfo(p.role) : null;
+          var show = p.id === myId || (p.isMafiaMate && p.id !== myId) || room.state === "ended" || !p.alive;
+          var card = show && info ? '<span class="card-role">' + info.emoji + '</span>' : (!p.alive ? '<span class="card-role">💀</span>' : '');
+          var micMuted = isPlayerMuted(p.id);
+          var canControlMic = p.id === myId || (currentRoom && currentRoom.hostId === myId);
+          seat.innerHTML = '<div class="seat-inner"><div class="chair"></div><div class="card' + (show && info ? ' revealed' : '') + '">' + card + '<div class="card-name">' + esc(p.name) + '</div></div><div class="seat-name' + (p.id === myId ? ' you' : '') + (p.id === room.hostId ? ' host' : '') + '"><span class="seat-name-text">' + (p.id === myId ? '⭐ ' : '') + esc(p.name) + '</span><button type="button" class="player-mic-btn' + (micMuted ? ' muted' : '') + '" data-mic-player="' + esc(p.id) + '" aria-label="مايك ' + esc(p.name) + '"' + (canControlMic ? '' : ' disabled') + '>' + (micMuted ? '🔇' : '🎙️') + '</button></div></div>';
+          miniSeats.appendChild(seat);
+          var micBtn = seat.querySelector('.player-mic-btn');
+          if (micBtn) micBtn.onclick = function(ev) { ev.preventDefault(); ev.stopPropagation(); if (p.id === myId) toggleMyMic(); else if (currentRoom && currentRoom.hostId === myId) requestPlayerMute(p.id, !isPlayerMuted(p.id)); };
+        });
+        lounge.appendChild(unit);
+      }
+      return;
+    }
+    el.setAttribute("data-player-count", total);
 
     var step = (Math.PI * 2) / Math.max(total, 4);
-    // على الهاتف نقرّب المقاعد قليلاً للداخل حتى لا تُقص الأسماء عند حافة الدردشة.
+    // حلقة آمنة داخل مساحة اللعب: تضيق البطاقات تلقائياً عند 12–20 لاعباً.
     var isMobile = window.innerWidth <= 700;
-    var radius = isMobile ? (total >= 10 ? 34 : (total >= 8 ? 36 : 38)) : 42;
+    var radius = isMobile ? (total >= 17 ? 40 : total >= 12 ? 41 : total >= 8 ? 42 : 43) : 42;
+    // نرفع مركز الحلقة ونضغطها عمودياً حتى لا يدخل اسم اللاعب السفلي تحت شريط التحكم.
+    var centerY = isMobile ? 43 : 50;
+    var radiusY = isMobile ? (total >= 17 ? 30 : 32) : 42;
 
     players.forEach(function(p, i) {
       var angle = -Math.PI / 2 + step * i;
       var x = 50 + radius * Math.cos(angle);
-      var y = 50 + radius * Math.sin(angle);
+      var y = centerY + radiusY * Math.sin(angle);
 
       var seat = document.createElement("div");
       seat.className = "seat";
+      seat.setAttribute("data-seat-count", total);
       seat.style.left = x + "%";
       seat.style.top = y + "%";
 
@@ -614,6 +669,8 @@ window.onload = function() {
         if (vc2 > 0) badge = '<div class="vote-badge">' + vc2 + '</div>';
       }
 
+      var micMuted = isPlayerMuted(p.id);
+      var canControlMic = p.id === myId || (currentRoom && currentRoom.hostId === myId);
       seat.innerHTML =
         '<div class="seat-inner">' + badge +
           '<div class="chair"></div>' +
@@ -622,9 +679,16 @@ window.onload = function() {
           '</div>' +
           '<div class="seat-name' + (p.id === myId ? ' you' : '') + (p.id === room.hostId ? ' host' : '') + '>' +
             '<span class="seat-name-text">' + (p.id === myId ? '⭐ ' : '') + esc(p.name) + '</span>' +
+            '<button type="button" class="player-mic-btn' + (micMuted ? ' muted' : '') + '" data-mic-player="' + esc(p.id) + '" aria-label="' + (micMuted ? 'تشغيل' : 'كتم') + ' مايك ' + esc(p.name) + '"' + (canControlMic ? '' : ' disabled') + '>' + (micMuted ? '🔇' : '🎙️') + '</button>' +
           '</div>' +
         '</div>';
       el.appendChild(seat);
+      var micBtn = seat.querySelector('.player-mic-btn');
+      if (micBtn) micBtn.onclick = function(ev) {
+        ev.preventDefault(); ev.stopPropagation();
+        if (p.id === myId) toggleMyMic();
+        else if (currentRoom && currentRoom.hostId === myId) requestPlayerMute(p.id, !isPlayerMuted(p.id));
+      };
     });
   }
 
@@ -634,6 +698,10 @@ window.onload = function() {
   function renderPlayerMicLayer(room) {
     var layer = $("playerMicLayer");
     if (!layer || !room || !room.players) return;
+    // الأزرار أصبحت داخل بطاقة اللاعب نفسها؛ الطبقة القديمة تُفرغ كي لا تتجمع على الهاتف.
+    layer.innerHTML = "";
+    return;
+    /* legacy floating layer retained below for backwards compatibility */
     cancelAnimationFrame(micLayerFrame);
     micLayerFrame = requestAnimationFrame(function() {
       var seats = document.querySelectorAll("#seats .seat");
