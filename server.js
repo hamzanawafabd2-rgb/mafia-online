@@ -516,6 +516,7 @@ io.on("connection", function(socket) {
   socket.on("callJoin", function() {
     var room = rooms[socket.roomId];
     if (!room) return;
+    console.log("📞 callJoin", socket.id, "room", room.id);
     var me = room.players.find(function(p) { return p.id === socket.id; });
     if (me) {
       var hostLocked = Object.prototype.hasOwnProperty.call(room.hostMuteOverrides || {}, socket.id) ? !!room.hostMuteOverrides[socket.id] : !!room.hostMuteAll;
@@ -531,8 +532,8 @@ io.on("connection", function(socket) {
     socket.emit("callForceMute", { muted: currentHostMuted || !!(me && me.selfMuted), hostMuted: currentHostMuted, selfMuted: !!(me && me.selfMuted), byHost: currentHostMuted });
     socket.to(room.id).emit("callPeerJoined", { id: socket.id, name: (room.players.find(function(p){return p.id===socket.id;}) || {}).name || "" });
   });
-  socket.on("callOffer", function(data) { if (data && data.to && data.offer) io.to(data.to).emit("callOffer", { from: socket.id, offer: data.offer }); });
-  socket.on("callAnswer", function(data) { if (data && data.to && data.answer) io.to(data.to).emit("callAnswer", { from: socket.id, answer: data.answer }); });
+  socket.on("callOffer", function(data) { if (data && data.to && data.offer) { console.log("📡 callOffer", socket.id, "->", data.to); io.to(data.to).emit("callOffer", { from: socket.id, offer: data.offer }); } });
+  socket.on("callAnswer", function(data) { if (data && data.to && data.answer) { console.log("📡 callAnswer", socket.id, "->", data.to); io.to(data.to).emit("callAnswer", { from: socket.id, answer: data.answer }); } });
   socket.on("callIce", function(data) { if (data && data.to && data.candidate) io.to(data.to).emit("callIce", { from: socket.id, candidate: data.candidate }); });
   socket.on("callLeave", function() { socket.to(socket.roomId || "").emit("callPeerLeft", { id: socket.id }); });
 

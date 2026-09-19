@@ -240,13 +240,15 @@ window.onload = function() {
   var iceQueue = {};
   var localForcedMuted = false;
   var hostMutedPlayers = {};
+  var callConnectTimer = null;
   var callConfig = {
     iceServers: [
       { urls: ["stun:stun.l.google.com:19302", "stun:stun1.l.google.com:19302"] },
       // TURN عام للاختبار. للإنتاج الكبير يفضّل وضع TURN خاص بك في السيرفر.
       { urls: "turn:openrelay.metered.ca:80", username: "openrelayproject", credential: "openrelayproject" },
       { urls: "turn:openrelay.metered.ca:443", username: "openrelayproject", credential: "openrelayproject" },
-      { urls: "turn:openrelay.metered.ca:443?transport=tcp", username: "openrelayproject", credential: "openrelayproject" }
+      { urls: "turn:openrelay.metered.ca:443?transport=tcp", username: "openrelayproject", credential: "openrelayproject" },
+      { urls: "turns:openrelay.metered.ca:443?transport=tcp", username: "openrelayproject", credential: "openrelayproject" }
     ],
     bundlePolicy: "max-bundle",
     rtcpMuxPolicy: "require",
@@ -306,6 +308,7 @@ window.onload = function() {
       if (pc.iceConnectionState === "connected" || pc.iceConnectionState === "completed") callStatus("المكالمة فعالة • الصوت متصل");
       if (pc.iceConnectionState === "failed") callStatus("فشل مسار الصوت — حاول مغادرة المكالمة والانضمام مجدداً");
     };
+    pc.onicecandidateerror = function() { callStatus("جاري تجربة مسار صوت بديل..."); };
     if (shouldOffer) {
       pc.createOffer({ offerToReceiveAudio: true }).then(function(o) {
         return pc.setLocalDescription(o);
@@ -342,6 +345,11 @@ window.onload = function() {
       $("btnCall").textContent = "📞 المكالمة مفتوحة";
       callStatus("جاري توصيل الصوت...");
       socket.emit("callJoin");
+      clearTimeout(callConnectTimer);
+      callConnectTimer = setTimeout(function() {
+        if (inCall && Object.keys(callPeers).length === 0) callStatus("بانتظار لاعب آخر ينضم للمكالمة");
+        else if (inCall) callStatus("تعذر عبور شبكة الهاتف — اضغط مغادرة ثم انضم مجدداً");
+      }, 12000);
       // بعض متصفحات الهاتف لا تبدأ الصوت البعيد إلا بعد نقرة المستخدم نفسها.
       document.addEventListener("click", function resumeCallAudio() {
         Object.keys(callPeers).forEach(function(id){ var a = $("audio-" + id); if (a) a.play().catch(function(){}); });
@@ -356,6 +364,7 @@ window.onload = function() {
   }
   function stopCall() {
     if (inCall) socket.emit("callLeave");
+    clearTimeout(callConnectTimer);
     Object.keys(callPeers).forEach(closePeer);
     if (callStream) callStream.getTracks().forEach(function(t) { t.stop(); });
     callStream = null; inCall = false; localForcedMuted = false;
@@ -419,10 +428,11 @@ window.onload = function() {
       makePeer(p.id, true);
     });
     updateMicButtonsForAll();
-    callStatus("جاري ربط الصوت...");
+    callStatus((list || []).length ? "جاري ربط الصوت بين اللاعبين..." : "بانتظار لاعب آخر ينضم للمكالمة");
   });
   socket.on("callPeerJoined", function(p) {
     if (!inCall || !p || !p.id) return;
+    callStatus("انضم لاعب — جاري فتح قناة الصوت...");
     // اللاعب القديم ينتظر العرض من اللاعب الجديد.
     makePeer(p.id, false);
   });
