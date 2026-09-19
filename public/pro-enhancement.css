@@ -1,0 +1,30 @@
+/* Velvet Council visual layer — keeps the original game intact while adding a premium control-room feel. */
+:root{--ink:#090b12;--panel:rgba(13,17,28,.9);--wine:#8d203c;--cyan:#74d5d0;--gold:#e4bd61}
+body{background:#070910;color:#eef2f5}
+.garden-bg .sky{background:radial-gradient(ellipse at 50% -10%,#24384a 0%,#111827 38%,#070910 100%)}
+.garden-bg .grass-floor{background:radial-gradient(ellipse at 50% 100%,#142422 0%,#0b1719 66%,#070910 100%)}
+.top-bar{background:linear-gradient(180deg,rgba(8,12,20,.98),rgba(10,14,23,.88));border-bottom:1px solid rgba(116,213,208,.25);box-shadow:0 12px 30px rgba(0,0,0,.25)}
+.phase-pill{border-color:rgba(116,213,208,.45);color:var(--cyan);background:rgba(7,13,20,.8)}
+.table-wood{background:radial-gradient(ellipse at 40% 30%,#61472d 0%,#3c2a20 38%,#211b1b 100%)}
+.table-inlay{border-color:rgba(116,213,208,.4)}
+.table-center-emblem{filter:grayscale(.2);opacity:.8}
+.chair::before{background:radial-gradient(ellipse at 50% 30%,#3f5960 0%,#21363b 70%,#142328 100%);border-color:#547f80}
+.chair::after{background:linear-gradient(180deg,#4d6d70,#1a3035);border-color:#6a9b99}
+.card{border-color:rgba(228,189,97,.8)}
+.seat-name{background:linear-gradient(180deg,rgba(16,28,34,.98),rgba(8,14,20,.98));border-color:rgba(116,213,208,.42);color:#d5f1ed;box-shadow:0 6px 18px rgba(0,0,0,.25)}
+.seat-name.you{border-color:var(--gold);color:#fff5d4;box-shadow:0 0 18px rgba(228,189,97,.22)}
+.player-mic-float{background:linear-gradient(145deg,#183b40,#0c1d25)!important;border-color:rgba(116,213,208,.75)!important;box-shadow:0 4px 16px rgba(0,0,0,.35)!important}
+.player-mic-float.muted{background:linear-gradient(145deg,#4c1a2a,#24101b)!important;border-color:#d9677f!important}
+.call-panel{background:linear-gradient(145deg,rgba(14,25,31,.98),rgba(8,13,20,.98));border-color:rgba(116,213,208,.35);box-shadow:0 20px 70px rgba(0,0,0,.6)}
+.call-settings{padding:12px!important;background:rgba(0,0,0,.18)}
+.voice-policy-card{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid rgba(116,213,208,.25);border-radius:12px;background:linear-gradient(90deg,rgba(116,213,208,.11),rgba(116,213,208,.03));text-align:right}
+.voice-policy-card .policy-icon{font-size:22px}.voice-policy-card b{display:block;color:#d5f1ed;font-size:12px}.voice-policy-card small{display:block;color:#91a7aa;font-size:10px;margin-top:3px;line-height:1.5}
+.host-call-controls{margin-top:10px;padding-top:10px;border-top:1px solid rgba(228,189,97,.16)}
+.host-control-heading{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}.host-control-heading b{color:var(--gold);font-size:12px}.host-control-heading span{font-size:10px;color:#91a7aa}
+.host-control-actions{display:flex;gap:7px}.host-control-actions .call-action{flex:1}
+.host-hint{display:block;color:#829294;font-size:10px;line-height:1.5;margin-top:8px}
+.call-action{border-radius:9px!important;border-color:rgba(116,213,208,.3)!important}.call-action.danger{border-color:rgba(217,103,127,.55)!important}
+.bottom-panel{background:linear-gradient(0deg,rgba(7,10,16,.99),rgba(12,19,27,.97));border-top-color:rgba(116,213,208,.25)}
+.tool-btn{border-color:rgba(116,213,208,.25)!important;background:rgba(14,24,31,.8)!important;color:#d5f1ed!important}.tool-btn:hover{border-color:var(--cyan)!important}
+.auth-card{background:linear-gradient(160deg,rgba(14,27,34,.96),rgba(7,10,16,.98));border-color:rgba(116,213,208,.35)}.auth-title{background:linear-gradient(180deg,#fff9e3,#e4bd61 55%,#8d6d2d);-webkit-background-clip:text;background-clip:text}
+@media(max-width:700px){.call-panel{width:calc(100% - 18px)!important;right:9px!important;left:9px!important}.host-control-actions{flex-direction:column}.voice-policy-card small{font-size:9px}}

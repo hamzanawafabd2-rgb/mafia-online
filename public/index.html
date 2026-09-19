@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>🎭 المافيا - حديقة الليل</title>
+<link rel="stylesheet" href="/style-final.css?v=FINAL60_20260919">
+<link rel="stylesheet" href="/pro-enhancement.css?v=COUNCIL_20260919">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=Amiri:wght@700&family=Reem+Kufi:wght@700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<!-- خلفية الحديقة -->
+<div class="garden-bg">
+  <div class="sky">
+    <div class="stars"></div>
+    <div class="moon"><div class="moon-glow"></div></div>
+  </div>
+  <div class="horizon">
+    <div class="tree t1"></div>
+    <div class="tree t2"></div>
+    <div class="tree t3"></div>
+    <div class="tree t4"></div>
+  </div>
+  <div class="pillar p-left"><div class="pillar-top"></div><div class="pillar-body"></div><div class="pillar-bottom"></div></div>
+  <div class="pillar p-right"><div class="pillar-top"></div><div class="pillar-body"></div><div class="pillar-bottom"></div></div>
+  <div class="lantern l1"><div class="lantern-light"></div></div>
+  <div class="lantern l2"><div class="lantern-light"></div></div>
+  <div class="grass-floor"></div>
+  <div class="firefly f1"></div>
+  <div class="firefly f2"></div>
+  <div class="firefly f3"></div>
+  <div class="warm-glow"></div>
+</div>
+
+<!-- شاشة الدخول -->
+<div id="screen-auth" class="screen active">
+  <div class="auth-wrapper">
+    <div class="auth-card">
+      <div class="auth-corner tc"></div>
+      <div class="auth-corner tr"></div>
+      <div class="auth-corner bl"></div>
+      <div class="auth-corner br"></div>
+
+      <div class="auth-mask">🎭</div>
+      <h1 class="auth-title">المافيا</h1>
+      <div class="auth-ornament"><span></span><i>❖</i><span></span></div>
+      <p class="auth-sub">ليلة في حديقة القصر... من تخون؟</p>
+
+      <div class="auth-form">
+        <div class="input-wrap">
+          <span class="input-icon">👤</span>
+          <input type="text" id="inputName" placeholder="اكتب اسمك..." maxlength="20" autocomplete="off">
+        </div>
+
+        <button id="btnCreate" class="btn-royal">
+          <span class="btn-icon">🎩</span>
+          <span>افتح غرفة جديدة</span>
+          <span class="btn-shine"></span>
+        </button>
+
+        <div class="auth-divider"><span></span><i>أو</i><span></span></div>
+
+        <div class="input-wrap code-input">
+          <span class="input-icon">🔑</span>
+          <input type="text" id="inputRoomId" placeholder="رمز الغرفة" maxlength="6" autocomplete="off">
+        </div>
+
+        <button id="btnJoin" class="btn-classic">
+          <span class="btn-icon">🚪</span>
+          <span>انضم إلى غرفة</span>
+        </button>
+
+        <div class="quick-join-hint">يمكنك مشاركة رابط الدعوة، ومن يفتحه يدخل رمز الغرفة تلقائياً.</div>
+        <div id="authError" class="auth-error"></div>
+      </div>
+
+      <div class="auth-footer">
+        <span>◆</span>
+        <span>تجربة راقية لعشاق المافيا</span>
+        <span>◆</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- شاشة اللعبة -->
+<div id="screen-game" class="screen">
+  <header class="top-bar">
+    <div class="tb-side tb-left">
+      <div class="tb-block">
+        <span class="tb-label">الغرفة</span>
+        <span id="displayRoomId" class="tb-code">------</span>
+        <button id="btnCopy" class="tb-copy" title="نسخ رابط الدعوة">🔗</button>
+      </div>
+    </div>
+
+    <div class="tb-center">
+      <div class="phase-pill" id="phaseBadge">
+        <span id="stateIcon">🚪</span>
+        <span id="stateText">الانتظار</span>
+      </div>
+      <div class="timer-circle" id="timerRing">
+        <svg viewBox="0 0 100 100">
+          <circle class="tc-bg" cx="50" cy="50" r="44"/>
+          <circle class="tc-fg" cx="50" cy="50" r="44" id="timerCircle"/>
+        </svg>
+        <div class="tc-content">
+          <span id="timer">0</span>
+          <small>ث</small>
+        </div>
+      </div>
+      <div class="day-chip">
+        <span>🌅</span>
+        <span>اليوم <b id="dayCount">0</b></span>
+      </div>
+    </div>
+
+    <div class="tb-side tb-right">
+      <button id="btnStart" class="btn-start-top hidden">▶ ابدأ</button>
+      <div class="players-chip">
+        <span>👥</span>
+        <b id="aliveCount">0</b><i>/</i><span id="totalCount">0</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="table-zone">
+    <div class="table-wrapper">
+      <div class="table">
+        <div class="table-top">
+          <div class="table-wood"></div>
+          <div class="table-inlay"></div>
+          <div class="table-center-emblem"><span>🎭</span></div>
+        </div>
+        <div class="table-shadow"></div>
+      </div>
+    </div>
+
+    <div id="seats" class="seats-container"></div>
+
+    <div id="roleCard" class="role-card hidden">
+      <div class="rc-inner">
+        <div class="rc-emoji" id="roleEmoji">👤</div>
+        <div class="rc-name" id="roleName">مواطن</div>
+        <div class="rc-desc" id="roleDesc"></div>
+      </div>
+    </div>
+
+    <div id="actionArea" class="action-area"></div>
+    <div id="resultArea" class="result-area"></div>
+  </main>
+
+  <section id="callPanel" class="call-panel hidden">
+    <div class="call-top">
+      <div><b>📞 المكالمة الصوتية</b><span id="callStatus">غير متصل</span></div>
+      <strong id="callCount">0 متصل</strong>
+      <button id="btnCloseCall" class="call-close" title="إغلاق">✕</button>
+    </div>
+    <div id="callSettings" class="call-settings hidden">
+      <div class="voice-policy-card">
+        <div class="policy-icon">🎙️</div>
+        <div><b>نظام الكلام في المجلس</b><small>كتمك الشخصي يبقى محفوظاً حتى بعد أن يمنحك المضيف الإذن.</small></div>
+      </div>
+      <div id="hostCallControls" class="host-call-controls hidden">
+        <div class="host-control-heading"><b>👑 غرفة القيادة</b><span>أنت مدير الصوت</span></div>
+        <div class="host-control-actions">
+          <button id="btnHostMuteAll" class="call-action danger">🔇 إسكات المجلس</button>
+          <button id="btnHostUnmuteAll" class="call-action">🎙️ فتح المجلس</button>
+        </div>
+        <small class="host-hint">يمكنك التحكم بكل لاعب من رمز المايك بجانب اسمه. فتح المجلس لا يفتح مايكاً أغلقه اللاعب بنفسه.</small>
+      </div>
+    </div>
+    <div class="call-actions">
+      <button id="btnMute" class="call-action">🎙️ كتم المايك</button>
+      <button id="btnCallLeave" class="call-action danger">☎️ مغادرة المكالمة</button>
+    </div>
+  </section>
+
+  <!-- مايكات اللاعبين: طبقة ثابتة واحدة فوق كل الواجهات، وبجوار اسم كل لاعب -->
+  <div id="playerMicLayer" class="player-mic-layer" aria-label="مايكات اللاعبين"></div>
+
+  <div id="bottomDock" class="bottom-dock" aria-label="منطقة الدردشة والتحكم">
+    <footer id="bottomPanel" class="bottom-panel">
+      <div class="chat-header" id="chatHeader">
+        <div class="ch-icon">💬</div>
+        <div class="ch-title" id="chatTitle">الدردشة العامة</div>
+        <button id="btnCloseMessages" class="chat-close" type="button" aria-label="إغلاق الرسائل">✕</button>
+      </div>
+
+      <div class="chat-body" id="chatMessages"></div>
+
+      <div id="voiceBar" class="voice-bar hidden">
+        <div class="vb-left">
+          <span class="vb-pulse"></span>
+          <span>التسجيل</span>
+        </div>
+        <div class="vb-wave">
+          <span></span><span></span><span></span><span></span><span></span>
+          <span></span><span></span><span></span>
+        </div>
+        <span id="recordingTime" class="vb-time">00:00</span>
+        <button id="btnCancelVoice" class="vb-btn vb-cancel" type="button">✕</button>
+        <button id="btnSendVoice" class="vb-btn vb-send" type="button">📤 إرسال</button>
+      </div>
+    </footer>
+
+    <form id="chatForm" class="chat-form chat-compose hidden">
+      <button type="button" id="btnVoice" class="cf-voice" aria-label="تسجيل رسالة صوتية"><span>🎤</span></button>
+      <input type="text" id="chatInput" placeholder="اكتب رسالة..." maxlength="200" autocomplete="off" enterkeyhint="send" aria-label="اكتب رسالة">
+      <button type="submit" class="cf-send" aria-label="إرسال الرسالة"><span>📤</span></button>
+    </form>
+
+    <div class="game-tools">
+      <button id="btnMessages" class="tool-btn messages-btn">💬 الرسائل</button>
+      <button id="btnCall" class="tool-btn call-btn">📞 انضم للمكالمة</button>
+      <button id="btnCallSettings" class="tool-btn">⚙️ إعدادات المكالمة</button>
+      <button id="btnLeave" class="tool-btn leave-btn">🚪 خروج</button>
+    </div>
+  </div>
+
+  <div id="endScreen" class="end-screen hidden">
+    <div class="end-panel">
+      <div class="end-crown" id="endCrown">🏆</div>
+      <h1 id="endTitle">انتهت اللعبة</h1>
+      <div class="end-ornament"><span></span><i>❖</i><span></span></div>
+      <p id="endMessage"></p>
+      <div class="end-cards-grid" id="endRoles"></div>
+      <button id="btnRestart" class="btn-royal">
+        <span class="btn-icon">🔄</span>
+        <span>جولة جديدة</span>
+        <span class="btn-shine"></span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="/client-final.js?v=FINAL60_20260919"></script>
+</body>
+</html>

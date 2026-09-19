@@ -1,0 +1,5 @@
+plugins { id 'com.android.application' }
+
+android { namespace 'com.mafia.game'; compileSdk 35
+    defaultConfig { applicationId 'com.mafia.game'; minSdk 24; targetSdk 35; versionCode 7; versionName '7.0' }
+}
